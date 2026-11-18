@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { join } from 'node:path';
 
 @Module({
   imports: [
@@ -22,6 +23,8 @@ import { AuthModule } from './auth/auth.module.js';
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
       synchronize: false,
+      migrations: [join(import.meta.dirname, 'migrations', '*.js')],
+      migrationsRun: true,
     }),
     UsersModule,
     AuthModule,
