@@ -1,4 +1,12 @@
-import { Entity, PrimaryColumn, Column, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  Index,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
+import { GenreEntity } from '../../genres/entities/genre.entity.js';
 
 @Index('idx_movies_title_fts', { synchronize: false })
 @Entity('movies')
@@ -20,4 +28,12 @@ export class MovieEntity {
 
   @Column({ type: 'text', nullable: true })
   poster_url: string | null;
+
+  @ManyToMany(() => GenreEntity)
+  @JoinTable({
+    name: 'movie_genres',
+    joinColumn: { name: 'movie_fk', referencedColumnName: 'movie_pk' },
+    inverseJoinColumn: { name: 'genre_fk', referencedColumnName: 'genre_pk' },
+  })
+  genres: GenreEntity[];
 }

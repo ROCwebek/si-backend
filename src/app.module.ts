@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { GenresModule } from './genres/genres.module.js';
 import { join } from 'node:path';
 
 @Module({
@@ -14,6 +15,7 @@ import { join } from 'node:path';
       isGlobal: true,
     }),
     MoviesModule,
+    GenresModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
