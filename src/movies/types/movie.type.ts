@@ -4,5 +4,6 @@ export type Movie = {
     release_year: number,
     description: string | null,
     runtime_minutes: number | null,
-    poster_url: string | null
+    poster_url: string | null,
+    genre_names: string[]
 }
