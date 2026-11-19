@@ -13,8 +13,11 @@ export class AuthController {
     @Post('login')
     @HttpCode(200)
     async login(@Body() body: LoginDto) {
-        await this.authService.validateUser(body.email, body.password)
+        const user = await this.authService.validateUser(
+            body.email,
+            body.password
+        )
 
-        return "Login succesfull"
+        return this.authService.login(user)
     }
 }
