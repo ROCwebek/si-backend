@@ -1,5 +1,5 @@
 
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
@@ -19,14 +19,13 @@ describe('AuthController', () => {
             login: vi.fn(),
           },
         },
-        {
-          provide: JwtAuthGuard,
-          useValue: {
-            canActivate: vi.fn().mockReturnValue(true),
-          },
-        },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({
+        canActivate: vi.fn().mockReturnValue(true),
+      })
+      .compile();
 
     controller = module.get<AuthController>(AuthController);
   });
