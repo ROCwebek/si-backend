@@ -1,15 +1,34 @@
 import { v4 as uuidv4 } from 'uuid';
-import dataSource from './data-source.js';
-import { MovieEntity } from './movies/entities/movie.entity.js';
-import { movies } from './movies/data/movies.data.js';
-import { GenreEntity } from './genres/entities/genre.entity.js';
-import { genreNames } from './genres/data/genres.data.js';
+import dataSource from '../data-source.js';
+import { MovieEntity } from '../../movies/entities/movie.entity.js';
+import { movies } from './data/movies.data.js';
+import { GenreEntity } from '../../genres/entities/genre.entity.js';
+import { genreNames } from './data/genres.data.js';
+import { RoleEntity } from '../../users/entities/role.entity.js';
 
 await dataSource.initialize();
+await dataSource.runMigrations();
+
 const movieRepo = dataSource.getRepository(MovieEntity);
 const genreRepo = dataSource.getRepository(GenreEntity);
+const roleRepo = dataSource.getRepository(RoleEntity);
 
-// 1. Genres: insert any that are missing (matched on the unique name)
+// 1. Roles: insert any that are missing (matched on the unique role name)
+const roleNames = ['admin', 'user'];
+const existingRoles = await roleRepo.find();
+const knownRoles = new Set(existingRoles.map((role) => role.role));
+const missingRoles = roleNames
+  .filter((name) => !knownRoles.has(name))
+  .map((name) => roleRepo.create({ role_pk: uuidv4(), role: name }));
+
+if (missingRoles.length > 0) {
+  await roleRepo.save(missingRoles);
+  console.log(`Seedede ${missingRoles.length} roller`);
+} else {
+  console.log('Alle roller findes allerede. Springer over.');
+}
+
+// 2. Genres: insert any that are missing (matched on the unique name)
 const existingGenres = await genreRepo.find();
 const knownNames = new Set(existingGenres.map((genre) => genre.name));
 const missingGenres = genreNames
@@ -36,7 +55,7 @@ const toGenres = (names: string[]): GenreEntity[] =>
     return genre;
   });
 
-// 2. Movies: only seeded into an empty table
+// 3. Movies: only seeded into an empty table
 if ((await movieRepo.count()) === 0) {
   await movieRepo.save(
     movies.map(({ genre_names, ...movie }) =>
@@ -48,7 +67,7 @@ if ((await movieRepo.count()) === 0) {
   console.log('Der er allerede film i databasen. Springer over.');
 }
 
-// 3. Link seed movies that have no genres yet (also covers databases seeded
+// 4. Link seed movies that have no genres yet (also covers databases seeded
 //    before genres existed). Movie ids are regenerated on every load, so the
 //    match is made on title.
 for (const { title, genre_names } of movies) {
