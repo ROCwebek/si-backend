@@ -20,9 +20,10 @@
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
-    "migration:generate": "npm run build && node --env-file=.env node_modules/typeorm/cli.js migration:generate -d dist/data-source.js",
+    "migration:generate": "npm run build && node --env-file=.env node_modules/typeorm/cli.js migration:generate -d dist/database/data-source.js",
     "migration:create": "node node_modules/typeorm/cli.js migration:create",
-    "seed": "node --env-file=.env dist/seed.js"
+    "migration:run": "node --env-file=.env node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js",
+    "seed": "node --env-file=.env dist/database/seeds/seed.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
