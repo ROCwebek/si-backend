@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import type { JwtPayload } from '../types/jwt-payload.type.js';
+import type { JwtPayload } from './jwt-payload.type.js';
 
 export type AuthenticatedRequest = Request & {
   user: JwtPayload;

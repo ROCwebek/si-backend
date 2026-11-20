@@ -27,7 +27,7 @@ import { WatchlistModule } from './watchlist/watchlist.module.js';
       autoLoadEntities: true,
       synchronize: false,
       migrations: [join(import.meta.dirname, 'migrations', '*.js')],
-      migrationsRun: true,
+      migrationsRun: false,
     }),
     UsersModule,
     AuthModule,

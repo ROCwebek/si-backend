@@ -1,6 +1,9 @@
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoviesController } from './movies.controller.js';
 import { MoviesService } from './movies.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
 
 describe('MoviesController', () => {
   let controller: MoviesController;
@@ -14,7 +17,12 @@ describe('MoviesController', () => {
           useValue: {},
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<MoviesController>(MoviesController);
   });

@@ -13,6 +13,10 @@ import { CreateMovieDto } from './dto/create-movie.dto.js';
 import { UpdateMovieDto } from './dto/update-movie.dto.js';
 import { HttpCode } from '@nestjs/common';
 import { MovieEntity } from './entities/movie.entity.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { UseGuards } from '@nestjs/common';
 
 @Controller('movies')
 export class MoviesController {
@@ -29,11 +33,15 @@ export class MoviesController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin') 
   addMovie(@Body() movie: CreateMovieDto): Promise<MovieEntity> {
     return this.moviesService.addMovie(movie);
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin') 
   updateMovie(
     @Param('id') id: string,
     @Body() movie: UpdateMovieDto,
@@ -42,6 +50,8 @@ export class MoviesController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin') 
   @HttpCode(204)
   deleteMovie(@Param('id') id: string): Promise<void> {
     return this.moviesService.deleteMovie(id);
