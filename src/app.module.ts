@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { GenresModule } from './genres/genres.module.js';
 import { join } from 'node:path';
+import { WatchlistModule } from './watchlist/watchlist.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { join } from 'node:path';
     }),
     UsersModule,
     AuthModule,
+    WatchlistModule,
   ],
   controllers: [AppController],
   providers: [AppService],

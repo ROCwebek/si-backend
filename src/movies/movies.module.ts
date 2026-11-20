@@ -9,6 +9,7 @@ import { MovieEntity } from './entities/movie.entity.js';
     MovieEntity
   ])],
   providers: [MoviesService],
-  controllers: [MoviesController]
+  controllers: [MoviesController],
+  exports: [MoviesService]
 })
 export class MoviesModule {}
