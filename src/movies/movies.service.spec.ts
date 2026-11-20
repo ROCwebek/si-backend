@@ -1,26 +1,27 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { MoviesController } from './movies.controller.js';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { MoviesService } from './movies.service.js';
+import { MovieEntity } from './entities/movie.entity.js';
 
-describe('MoviesController', () => {
-  let controller: MoviesController;
+describe('MoviesService', () => {
+  let service: MoviesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [MoviesController],
       providers: [
+        MoviesService,
         {
-          provide: MoviesService,
+          provide: getRepositoryToken(MovieEntity),
           useValue: {},
         },
       ],
     }).compile();
 
-    controller = module.get<MoviesController>(MoviesController);
+    service = module.get<MoviesService>(MoviesService);
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(service).toBeDefined();
   });
 });

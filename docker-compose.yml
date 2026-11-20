@@ -1,0 +1,52 @@
+# Development environment for SeenIt backend + database
+# Start: docker compose up --build
+#
+# API:       http://localhost:3000/movies
+# Database:  localhost:5433  (user: seenit, password: seenit_dev, database: seenit)
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: seenit
+      POSTGRES_PASSWORD: seenit_dev
+      POSTGRES_DB: seenit
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U seenit -d seenit']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Runs migrations and insert testdata ónce and then stops
+  seed:
+    build: .
+    command: ['node', 'dist/database/seeds/seed.js']
+    environment: &db-env
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: seenit
+      DB_PASSWORD: seenit_dev
+      DB_DATABASE: seenit
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build: .
+    environment:
+      <<: *db-env
+      NODE_ENV: development
+      PORT: 3000
+      JWT_SECRET: dev_secret_not_for_production
+    ports:
+      - '3000:3000'
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_dev_data:
