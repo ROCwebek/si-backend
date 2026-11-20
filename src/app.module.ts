@@ -24,7 +24,7 @@ import { join } from 'node:path';
       autoLoadEntities: true,
       synchronize: false,
       migrations: [join(import.meta.dirname, 'migrations', '*.js')],
-      migrationsRun: true,
+      migrationsRun: false,
     }),
     UsersModule,
     AuthModule,
