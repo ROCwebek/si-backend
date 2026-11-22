@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { GenresModule } from './genres/genres.module.js';
 import { WatchlistModule } from './watchlist/watchlist.module.js';
 import { getDataSourceOptions } from './database/data-source.js';
+import { ReviewsModule } from './reviews/reviews.module.js';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { getDataSourceOptions } from './database/data-source.js';
     UsersModule,
     AuthModule,
     WatchlistModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
