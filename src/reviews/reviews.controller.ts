@@ -21,7 +21,9 @@ import type { AuthenticatedRequest } from '../auth/types/authenticated-request.t
 import type { LoglistReview, MyReview, Review } from './types/review.type.js';
 
 // Reviews on a movie's single view.
-// The reviewer is always the logged-in user (from the JWT), never the body.
+// The reviewer is always the logged-in user (from the JWT), never the URL or
+// body. A user has at most one review per movie, so /my-review is
+// "my review of this movie".
 @Controller('movies/:movieId/reviews')
 export class MovieReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
@@ -34,15 +36,6 @@ export class MovieReviewsController {
     return this.reviewsService.getReviewsForMovie(movieId);
   }
 
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  getMyReview(
-    @Param('movieId', ParseUUIDPipe) movieId: string,
-    @Req() req: AuthenticatedRequest,
-  ): Promise<MyReview> {
-    return this.reviewsService.getMyReviewForMovie(req.user.sub, movieId);
-  }
-
   @Post()
   @UseGuards(JwtAuthGuard)
   createReview(
@@ -53,7 +46,7 @@ export class MovieReviewsController {
     return this.reviewsService.createReview(req.user.sub, movieId, dto);
   }
 
-  @Patch('me')
+  @Patch('my-review')
   @UseGuards(JwtAuthGuard)
   updateMyReview(
     @Param('movieId', ParseUUIDPipe) movieId: string,
@@ -63,7 +56,7 @@ export class MovieReviewsController {
     return this.reviewsService.updateMyReview(req.user.sub, movieId, dto);
   }
 
-  @Delete('me')
+  @Delete('my-review')
   @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   deleteMyReview(
@@ -72,28 +65,29 @@ export class MovieReviewsController {
   ): Promise<void> {
     return this.reviewsService.deleteMyReview(req.user.sub, movieId);
   }
-}
 
-@Controller('reviews')
-export class ReviewsController {
-  constructor(private readonly reviewsService: ReviewsService) {}
-
-  // The logged-in user's loglist. Each entry has movie_fk, so editing and
-  // deleting from the loglist uses PATCH/DELETE /movies/:movieId/reviews/me.
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  getMyReviews(@Req() req: AuthenticatedRequest): Promise<LoglistReview[]> {
-    return this.reviewsService.getMyReviews(req.user.sub);
-  }
-
-  // Admin: remove any review, e.g. an inappropriate one
-  @Delete(':reviewId')
+  // Admin: remove any user's review, e.g. an inappropriate one
+  @Delete(':userId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @HttpCode(204)
   deleteReview(
-    @Param('reviewId', ParseUUIDPipe) reviewId: string,
+    @Param('movieId', ParseUUIDPipe) movieId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
   ): Promise<void> {
-    return this.reviewsService.deleteReviewById(reviewId);
+    return this.reviewsService.deleteReviewAsAdmin(userId, movieId);
+  }
+}
+
+@Controller('loglist')
+export class LoglistController {
+  constructor(private readonly reviewsService: ReviewsService) {}
+
+  // The logged-in user's loglist. Each entry has movie_fk, so editing and
+  // deleting from the loglist uses PATCH/DELETE /movies/:movieId/reviews/my-review.
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  getMyReviews(@Req() req: AuthenticatedRequest): Promise<LoglistReview[]> {
+    return this.reviewsService.getMyReviews(req.user.sub);
   }
 }

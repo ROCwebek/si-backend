@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   MovieReviewsController,
-  ReviewsController,
+  LoglistController,
 } from './reviews.controller.js';
 import { ReviewsService } from './reviews.service.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -9,11 +9,11 @@ import { RolesGuard } from '../auth/guards/roles.guard.js';
 
 describe('Reviews controllers', () => {
   let movieReviewsController: MovieReviewsController;
-  let reviewsController: ReviewsController;
+  let loglistController: LoglistController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [MovieReviewsController, ReviewsController],
+      controllers: [MovieReviewsController, LoglistController],
       providers: [
         {
           provide: ReviewsService,
@@ -28,11 +28,11 @@ describe('Reviews controllers', () => {
       .compile();
 
     movieReviewsController = module.get(MovieReviewsController);
-    reviewsController = module.get(ReviewsController);
+    loglistController = module.get(LoglistController);
   });
 
   it('should be defined', () => {
     expect(movieReviewsController).toBeDefined();
-    expect(reviewsController).toBeDefined();
+    expect(loglistController).toBeDefined();
   });
 });

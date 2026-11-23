@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { ReviewEntity } from './entities/review.entity.js';
 import { CreateReviewDto } from './dto/create-review.dto.js';
 import { UpdateReviewDto } from './dto/update-review.dto.js';
@@ -30,22 +29,14 @@ export class ReviewsService {
       order: { created_at: 'DESC' },
     });
 
-    // Only the reviewer's name is exposed, never their id, email, password etc.
+    // Only the reviewer's id and name are sent, never email, password etc.
     return reviews.map((r) => ({
-      review_pk: r.review_pk,
+      user_pk: r.user_fk,
       user_name: r.user.user_name,
       rating: r.rating,
       review: r.review,
       created_at: r.created_at,
     }));
-  }
-
-  async getMyReviewForMovie(
-    userId: string,
-    movieId: string,
-  ): Promise<MyReview> {
-    const review = await this.findOwnReview(userId, movieId);
-    return this.toMyReview(review);
   }
 
   // The loglist: all of the user's own reviews, newest first
@@ -85,7 +76,6 @@ export class ReviewsService {
 
     const review = await this.reviewRepository.save(
       this.reviewRepository.create({
-        review_pk: uuidv4(),
         user_fk: userId,
         movie_fk: movieId,
         rating: dto.rating,
@@ -120,9 +110,12 @@ export class ReviewsService {
     }
   }
 
-  // Admin: remove any review, e.g. an inappropriate one
-  async deleteReviewById(reviewId: string): Promise<void> {
-    const result = await this.reviewRepository.delete({ review_pk: reviewId });
+  // Admin: remove any user's review, e.g. an inappropriate one
+  async deleteReviewAsAdmin(userId: string, movieId: string): Promise<void> {
+    const result = await this.reviewRepository.delete({
+      user_fk: userId,
+      movie_fk: movieId,
+    });
 
     if (result.affected === 0) {
       throw new NotFoundException('Anmeldelsen blev ikke fundet');
@@ -147,7 +140,6 @@ export class ReviewsService {
 
   private toMyReview(r: ReviewEntity): MyReview {
     return {
-      review_pk: r.review_pk,
       movie_fk: r.movie_fk,
       rating: r.rating,
       review: r.review,

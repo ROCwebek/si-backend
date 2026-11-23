@@ -3,7 +3,6 @@ import {
   PrimaryColumn,
   Column,
   Check,
-  Unique,
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
@@ -12,18 +11,14 @@ import {
 import { UserEntity } from '../../users/entities/user.entity.js';
 import { MovieEntity } from '../../movies/entities/movie.entity.js';
 
+// The composite primary key means a user can only review each movie once
 @Entity('reviews')
 @Check('CHK_review_rating_range', '"rating" BETWEEN 1 AND 5')
-// A user can only review each movie once
-@Unique('UQ_review_user_movie', ['user_fk', 'movie_fk'])
 export class ReviewEntity {
   @PrimaryColumn('uuid')
-  review_pk: string;
-
-  @Column('uuid')
   user_fk: string;
 
-  @Column('uuid')
+  @PrimaryColumn('uuid')
   movie_fk: string;
 
   @ManyToOne(() => UserEntity, { nullable: false, onDelete: 'CASCADE' })

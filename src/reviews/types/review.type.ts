@@ -1,7 +1,9 @@
-// What everyone sees for a review on a movie's single view.
-// review_pk is only there so an admin can point at the review to remove it.
+// A review on a movie's single view.
+// user_pk lets the frontend tell if the review is the logged-in user's own
+// (compare with user.user_pk from the login response), and lets an admin
+// delete it. Only user_name is meant to be displayed.
 export type Review = {
-  review_pk: string;
+  user_pk: string;
   user_name: string;
   rating: number;
   review: string;
@@ -10,7 +12,6 @@ export type Review = {
 
 // The logged-in user's own review
 export type MyReview = {
-  review_pk: string;
   movie_fk: string;
   rating: number;
   review: string;
