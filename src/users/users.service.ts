@@ -25,9 +25,14 @@ export class UsersService {
     }
 
     async getUserById(id: string): Promise<UserEntity> {
-        const user = await this.userRepository.findOneBy({
+        const user = await this.userRepository.findOne({
+        where: {
             user_pk: id
-        })
+        },
+        relations: {
+            role: true
+        }
+        });
         
         if (!user) {
            throw new NotFoundException("Ingen bruger blev fundet")
