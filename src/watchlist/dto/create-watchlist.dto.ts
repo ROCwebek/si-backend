@@ -1,7 +1,6 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsUUID } from 'class-validator';
 
 export class CreateWatchlistDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID()
   movie_id: string;
 }
