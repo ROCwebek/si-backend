@@ -17,7 +17,6 @@ try {
     const genreRepo = manager.getRepository(GenreEntity);
     const movieRepo = manager.getRepository(MovieEntity);
 
-    // 1. Opret manglende roller
     for (const role of ['admin', 'user']) {
       const exists = await roleRepo.findOneBy({ role });
 
@@ -29,7 +28,6 @@ try {
       }
     }
 
-    // 2. Opret manglende genrer
     for (const name of genreNames) {
       const exists = await genreRepo.findOneBy({ name });
 
@@ -41,10 +39,8 @@ try {
       }
     }
 
-    // 3. Hent genrerne
     const genres = await genreRepo.find();
 
-    // 4. Indsæt film, hvis tabellen er tom
     if ((await movieRepo.count()) === 0) {
       for (const { genre_names, ...movie } of movies) {
         const movieGenres = genre_names.map((name) => {
