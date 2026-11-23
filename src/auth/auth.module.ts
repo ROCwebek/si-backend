@@ -12,6 +12,9 @@ import { RolesGuard } from './guards/roles.guard.js';
   imports: [
     UsersModule,
     JwtModule.registerAsync({
+      // Makes JwtService available in every module, so JwtAuthGuard works in
+      // UsersModule without it importing AuthModule (which would be circular)
+      global: true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
