@@ -1,11 +1,15 @@
 import { v4 as uuidv4 } from 'uuid';
+import * as argon2 from 'argon2';
 import dataSource from '../data-source.js';
 import { MovieEntity } from '../../movies/entities/movie.entity.js';
 import { movies } from './data/movies.data.js';
 import { GenreEntity } from '../../genres/entities/genre.entity.js';
 import { genreNames } from './data/genres.data.js';
 import { RoleEntity } from '../../users/entities/role.entity.js';
-
+import { UserEntity } from '../../users/entities/user.entity.js';
+import { WatchlistEntity } from '../../watchlist/entities/watchlist.entity.js';
+import { ReviewEntity } from '../../reviews/entities/review.entity.js';
+import { users, SEED_PASSWORD } from './data/users.data.js';
 
 await dataSource.initialize();
 
@@ -16,6 +20,9 @@ try {
     const roleRepo = manager.getRepository(RoleEntity);
     const genreRepo = manager.getRepository(GenreEntity);
     const movieRepo = manager.getRepository(MovieEntity);
+    const userRepo = manager.getRepository(UserEntity);
+    const watchlistRepo = manager.getRepository(WatchlistEntity);
+    const reviewRepo = manager.getRepository(ReviewEntity);
 
     for (const role of ['admin', 'user']) {
       const exists = await roleRepo.findOneBy({ role });
@@ -56,6 +63,58 @@ try {
         await movieRepo.save({
           ...movie,
           genres: movieGenres,
+        });
+      }
+    }
+
+    const allMovies = await movieRepo.find();
+
+    const findMovie = (title: string) => {
+      const movie = allMovies.find((m) => m.title === title);
+
+      if (!movie) {
+        throw new Error(`Ukendt film: ${title}`);
+      }
+
+      return movie;
+    };
+
+    for (const { role, watchlist, reviews, ...user } of users) {
+      if (await userRepo.existsBy({ user_email: user.user_email })) {
+        continue;
+      }
+
+      for (const { title } of reviews) {
+        if (watchlist.includes(title)) {
+          throw new Error(
+            `${user.user_name} har ${title} på både watchlist og loglist`,
+          );
+        }
+      }
+
+      const savedUser = await userRepo.save({
+        user_pk: uuidv4(),
+        ...user,
+        user_password: await argon2.hash(SEED_PASSWORD, {
+          type: argon2.argon2id,
+        }),
+
+        role: await roleRepo.findOneByOrFail({ role }),
+        verified_at: new Date(),
+      });
+
+      for (const title of watchlist) {
+        await watchlistRepo.save({
+          user_fk: savedUser.user_pk,
+          movie_fk: findMovie(title).movie_pk,
+        });
+      }
+
+      for (const { title, ...review } of reviews) {
+        await reviewRepo.save({
+          user_fk: savedUser.user_pk,
+          movie_fk: findMovie(title).movie_pk,
+          ...review,
         });
       }
     }
