@@ -13,4 +13,7 @@ export const genreNames: string[] = [
   'Sci-Fi',
   'Thriller',
   'War',
+  'Western',
+  'Music',
+  'History',
 ];
