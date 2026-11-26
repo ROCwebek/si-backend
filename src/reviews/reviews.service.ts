@@ -4,8 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { ReviewEntity } from './entities/review.entity.js';
+import { WatchlistEntity } from '../watchlist/entities/watchlist.entity.js';
 import { CreateReviewDto } from './dto/create-review.dto.js';
 import { UpdateReviewDto } from './dto/update-review.dto.js';
 import { MoviesService } from '../movies/movies.service.js';
@@ -17,6 +18,7 @@ export class ReviewsService {
     @InjectRepository(ReviewEntity)
     private readonly reviewRepository: Repository<ReviewEntity>,
     private readonly moviesService: MoviesService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async getReviewsForMovie(movieId: string): Promise<Review[]> {
@@ -57,6 +59,7 @@ export class ReviewsService {
     }));
   }
 
+  // Reviewing a movie puts it on the loglist and takes it off the watchlist.
   async createReview(
     userId: string,
     movieId: string,
@@ -65,22 +68,36 @@ export class ReviewsService {
     // Throws 404 if the movie does not exist
     await this.moviesService.getMovieById(movieId);
 
-    const exists = await this.reviewRepository.existsBy({
-      user_fk: userId,
-      movie_fk: movieId,
-    });
+    const review = await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        const reviewRepo =
+          transactionalEntityManager.getRepository(ReviewEntity);
 
-    if (exists) {
-      throw new ConflictException('Du har allerede anmeldt denne film');
-    }
+        const exists = await reviewRepo.existsBy({
+          user_fk: userId,
+          movie_fk: movieId,
+        });
 
-    const review = await this.reviewRepository.save(
-      this.reviewRepository.create({
-        user_fk: userId,
-        movie_fk: movieId,
-        rating: dto.rating,
-        review: dto.review,
-      }),
+        if (exists) {
+          throw new ConflictException('Du har allerede anmeldt denne film');
+        }
+
+        const saved = await reviewRepo.save(
+          reviewRepo.create({
+            user_fk: userId,
+            movie_fk: movieId,
+            rating: dto.rating,
+            review: dto.review,
+          }),
+        );
+
+        await transactionalEntityManager.delete(WatchlistEntity, {
+          user_fk: userId,
+          movie_fk: movieId,
+        });
+
+        return saved;
+      },
     );
 
     return this.toMyReview(review);
