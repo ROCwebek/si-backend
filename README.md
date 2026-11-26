@@ -1,132 +1,132 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# SeenIt Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+REST API for SeenIt: movies, genres, users, watchlists and reviews.
+Built with NestJS, TypeORM, PostgreSQL and JWT auth. All routes are prefixed with `/api`.
 
-## Description
+## Setup
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Requires Docker with Compose, and Node.js for `npm install`.
 
-## Project setup
+After cloning the repository, install the dependencies:
 
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
+This is for working with the code locally (editor, lint and tests). Docker installs its own dependencies.
+
+Then start the project:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker compose up --build
 ```
 
-## Run tests
+This starts the database, seeds it and starts the backend. No `.env` file is needed.
+
+| Service  | Address                          |
+| -------- | -------------------------------- |
+| API      | http://localhost:3000/api/movies |
+| Database | `localhost:5433`, with user `seenit`, password `seenit_dev`, database `seenit` |
+
+## View the database
+
+While the project is running, open `psql` in a second terminal:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose exec postgres psql -U seenit -d seenit
 ```
 
-## Deployment
+| Command                                   | Description                                   |
+| ----------------------------------------- | --------------------------------------------- |
+| `\dt`                                     | List all tables                               |
+| `\d reviews`                              | Show a table's columns, indexes and constraints |
+| `\di`                                     | List all indexes                              |
+| `SELECT title, release_year FROM movies;` | Show the seeded movies                        |
+| `\q`                                      | Quit                                          |
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Tables, indexes and constraints are defined in [src/database/migrations/](src/database/migrations/).
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### pgAdmin
+
+To use pgAdmin instead of `psql`, start the project, then right-click **Servers** → **Register** → **Server...**
+
+| Tab        | Field                | Value        |
+| ---------- | -------------------- | ------------ |
+| General    | Name                 | `SeenIt`     |
+| Connection | Host name/address    | `localhost`  |
+| Connection | Port                 | `5433`       |
+| Connection | Maintenance database | `seenit`     |
+| Connection | Username             | `seenit`     |
+| Connection | Password             | `seenit_dev` |
+
+- Tables: **Databases → seenit → Schemas → public → Tables**
+- Diagram: right-click the `seenit` database → **ERD For Database**
+- View data: right-click a table → **View/Edit Data** → **All Rows**
+- SQL: right-click the `seenit` database → **Query Tool**
+
+## Dataset
+
+| Table             | Content                                              |
+| ----------------- | ---------------------------------------------------- |
+| `movies`, `genres` | Movies and genres                                   |
+| `movie_genres`    | Many-to-many between movies and genres               |
+| `users`, `roles`  | Each user has one role                               |
+| `reviews`         | One per user and movie, rating 1–5                   |
+| `watchlist`       | Movies saved by users, one row per user and movie    |
+
+The `seed` service ([src/database/seeds/](src/database/seeds/)) runs on every start. It applies pending migrations and adds missing roles (`admin` and `user`) and genres. Movies are only added when the `movies` table is empty. Existing data is kept. Test users are added, with their watchlists and reviews, if their email is not already in the database.
+
+The seed data is defined in [src/database/seeds/data/](src/database/seeds/data/).
+
+### Reset the database
+
+This deletes **all** data in the local database. It is required if you want changes to the movie seed data applied.
+
+It also fixes `relation ... already exists` from `seed` when your local database was created with an earlier version of a migration.
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose down -v
+docker compose up --build
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Test users
 
-## Observability
+All seeded users have the password `password`. See [users.data.ts](src/database/seeds/data/users.data.ts) for the full list.
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+| Role  | Email               |
+| ----- | ------------------- |
+| admin | `admin@example.com` |
+| user  | `anna@example.com`  |
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+Log in with `POST /api/auth/login` and a JSON body containing `email` and `password`. Send the returned `access_token` as `Authorization: Bearer <token>`. It expires after 15 minutes.
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+These accounts are for local testing only. Do not run the seed against a publicly accessible database.
 
-To add it to this project, run this and approve the code it prints at [observe.nestjs.com/link](https://observe.nestjs.com/link) - signing up for free if you have no account:
+## Example queries
 
-```bash
-$ npx @nestjs/observe link
+Run these in `psql` or the pgAdmin Query Tool (see [View the database](#view-the-database)).
+
+### Movies and their genres
+
+Joins the many-to-many relation through `movie_genres`.
+
+```sql
+SELECT m.title, string_agg(g.name, ', ' ORDER BY g.name) AS genres
+FROM movies m
+JOIN movie_genres mg ON mg.movie_fk = m.movie_pk
+JOIN genres g ON g.genre_pk = mg.genre_fk
+GROUP BY m.movie_pk
+ORDER BY m.title;
 ```
 
-It installs `@nestjs/observe`, wires it into `AppModule` and `main.ts`, and writes the app key and secret into `.env`, which every `nest start` script (`start`, `start:dev`, `start:debug`) then loads. In production, set `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment instead.
+### Full-text search on titles
 
-Or do it by hand:
+The same kind of prefix search as `GET /api/movies?search=dar` ([movies.service.ts](src/movies/movies.service.ts)). Prefix the query with `EXPLAIN` to see `Bitmap Index Scan on idx_movies_title_fts`.
 
-```bash
-$ npm install @nestjs/observe
+```sql
+SELECT title FROM movies
+WHERE to_tsvector('simple', title) @@ to_tsquery('simple', 'dar:*');
 ```
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/sdk) - it takes a single import and an app key.
-
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
