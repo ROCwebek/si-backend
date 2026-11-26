@@ -7,7 +7,17 @@ Built with NestJS, TypeORM, PostgreSQL and JWT auth. All routes are prefixed wit
 
 ## Setup
 
-Requires Docker with Compose.
+Requires Docker with Compose, and Node.js for `npm install`.
+
+After cloning the repository, install the dependencies:
+
+```bash
+npm install
+```
+
+This is for working with the code locally (editor, lint and tests). Docker installs its own dependencies.
+
+Then start the project:
 
 ```bash
 docker compose up --build
@@ -37,6 +47,23 @@ docker compose exec postgres psql -U seenit -d seenit
 | `\q`                                      | Quit                                          |
 
 Tables, indexes and constraints are defined in [src/database/migrations/](src/database/migrations/).
+
+### pgAdmin
+
+To use pgAdmin instead of `psql`, start the project, then right-click **Servers** → **Register** → **Server...**
+
+| Tab        | Field                | Value        |
+| ---------- | -------------------- | ------------ |
+| General    | Name                 | `SeenIt`     |
+| Connection | Host name/address    | `localhost`  |
+| Connection | Port                 | `5433`       |
+| Connection | Maintenance database | `seenit`     |
+| Connection | Username             | `seenit`     |
+| Connection | Password             | `seenit_dev` |
+
+- Tables: **Databases → seenit → Schemas → public → Tables**
+- Diagram: right-click the `seenit` database → **ERD For Database**
+- SQL: right-click the `seenit` database → **Query Tool**
 
 ## Dataset
 
@@ -78,7 +105,7 @@ These accounts are for local testing only. Do not run the seed against a publicl
 
 ## Example queries
 
-Run these in `psql` (see [View the database](#view-the-database)).
+Run these in `psql` or the pgAdmin Query Tool (see [View the database](#view-the-database)).
 
 ### Movies and their genres
 
