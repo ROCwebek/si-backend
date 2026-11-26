@@ -48,9 +48,9 @@ Tables, indexes and constraints are defined in [src/database/migrations/](src/da
 | `reviews`         | One per user and movie, rating 1–5                   |
 | `watchlist`       | Movies saved by users, one row per user and movie    |
 
-The `seed` service ([src/database/seeds/](src/database/seeds/)) runs on every start. It applies pending migrations and adds missing roles (`admin` and `user`) and genres. Movies are only added when the `movies` table is empty. Existing data is kept. No users, reviews or watchlist entries are seeded.
+The `seed` service ([src/database/seeds/](src/database/seeds/)) runs on every start. It applies pending migrations and adds missing roles (`admin` and `user`) and genres. Movies are only added when the `movies` table is empty. Existing data is kept. Test users are added, with their watchlists and reviews, if their email is not already in the database.
 
-The seeded genres and movies are defined in [src/database/seeds/data/](src/database/seeds/data/).
+The seed data is defined in [src/database/seeds/data/](src/database/seeds/data/).
 
 ### Reset the database
 
@@ -63,14 +63,18 @@ docker compose down -v
 docker compose up --build
 ```
 
-### Create an admin
+### Test users
 
-The seed does not create any users. Sign up through `POST /api/users` with a JSON body containing `user_name`, `user_email` and `user_password` (min. 8 characters), then promote the user:
+All seeded users have the password `password`. See [users.data.ts](src/database/seeds/data/users.data.ts) for the full list.
 
-```bash
-docker compose exec postgres psql -U seenit -d seenit -c \
-  "UPDATE users SET role_fk = (SELECT role_pk FROM roles WHERE role = 'admin') WHERE user_email = 'you@example.com';"
-```
+| Role  | Email               |
+| ----- | ------------------- |
+| admin | `admin@example.com` |
+| user  | `anna@example.com`  |
+
+Log in with `POST /api/auth/login` and a JSON body containing `email` and `password`. Send the returned `access_token` as `Authorization: Bearer <token>`. It expires after 15 minutes.
+
+These accounts are for local testing only. Do not run the seed against a publicly accessible database.
 
 ## Example queries
 
