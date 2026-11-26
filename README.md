@@ -63,6 +63,7 @@ To use pgAdmin instead of `psql`, start the project, then right-click **Servers*
 
 - Tables: **Databases → seenit → Schemas → public → Tables**
 - Diagram: right-click the `seenit` database → **ERD For Database**
+- View data: right-click a table → **View/Edit Data** → **All Rows**
 - SQL: right-click the `seenit` database → **Query Tool**
 
 ## Dataset
